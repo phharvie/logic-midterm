@@ -30,10 +30,9 @@ sig KnowledgeState {
 	-- poss[p][w1][w2] read as: 
 		-- If p is in w1, they believe w2 is possible
 	poss: Prisoner->World->World,
-	night: Int
+	day: Int
 } { 
-	this = KS/first implies night = 0
-	this != KS/first implies night > 0
+	this = KS/first implies day = 1
 }
 
 -- can see all other prisoners other than themselves
@@ -45,8 +44,8 @@ fun visibleBlueEyes[w: World, p: Prisoner] : set Prisoner {
 	w.eyes.Blue - p
 }
 
-pred canLeave[ks: KnowledgeState, p: Prisoner, w: World] {
-	one ks.poss[p][w] and w.eyes[p] = Blue
+fun canLeave[ks: KnowledgeState, w: World] : set Prisoner {
+	{p: Prisoner | one ks.poss[p][w]  and w.eyes[p] = Blue}
 }
 
 pred initialKnowledge[ks: KnowledgeState] {
@@ -63,18 +62,14 @@ pred initialKnowledge[ks: KnowledgeState] {
 	}
 }
 
-fun changeWorld[ks: KnowledgeState, p: Prisoner, w: World] : set Prisoner {
-	canLeave[ks, p, w] implies w.left + p else w.left
-}
-	
-
-pred transition[ks: KnowledgeState, ks': KnowledgeState] {
+pred transition[ks, ks': KnowledgeState] {
 	all p: Prisoner | all w: World { 
 		ks'.poss[p][w] =  {ow: World | 
-			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p'] and 
-			(ow = w or #ks.poss[p'][ow] > 1)
+			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p'] 
+			and canLeave[ks, ow] = canLeave[ks, w]
 		}
 	}
+	ks'.day = add[ks.day, 1]
 }
 
 pred consistent[ks: KnowledgeState] {
@@ -95,9 +90,10 @@ fact initialState {
 	onIsland[KS/first]
 }
 
-fact nextState {
-	consistent[KS/first.next]
-	transition[KS/first, KS/first.next]
+fact traces {
+	all ks: KnowledgeState - KS/last | {
+		transition[ks, ks.next]
+	}
 }
 
 run{} for exactly 2 Prisoner,  exactly 3 World,
