@@ -80,26 +80,62 @@ fact traces {
 	}
 }
 
-run{} for exactly 3 Prisoner,  exactly 8 World, exactly 7 KnowledgeState
+run{} for exactly 1 Prisoner,  exactly 2 World, exactly 7 KnowledgeState
 
-pred consistent[ks: KnowledgeState] {
-	all p: Prisoner, w: World | {
-			w in ks.poss[p][w]
-		}
+-- a person with blue eyes exists in that world
+pred someBlueEyes[w: World] {
+	some p: Prisoner | w.eyes[p] = Blue
 }
+
 --------------- sanity checks --------------- 
 
+/* 
+checks that consistency is maintained for all worlds that are not composed
+of only green eyed people (meaning that the people in that world believe
+their world is possible)
+*/
 check allConsistent {
-	all ks: KnowledgeState, p: Prisoner, w: World | {
-		w in ks.poss[p][w]
+	all ks: KnowledgeState, w: World, p: Prisoner {
+		-- if there exists someone with blue eyes, then everyone in that world
+		-- believes that world is possible
+		someBlueEyes[w] implies w in ks.poss[p][w]
 	}
-}
+} for exactly 3 Prisoner, exactly 8 World, exactly 7 KnowledgeState
 
+/*
+checks that for everyone world not composed of only green eyed people,
+there will a knowledge state where each person is aware of the eye color
+*/
 check everyoneIsAwareEventually {
-	all w: World, p: Prisoner | {
-		some ks: KnowledgeState | {
-			w in ks.poss[p][w]
+	all w: World, p: Prisoner | some ks: KnowledgeState | {
+		someBlueEyes[w] implies {
+			ks.poss[p][w]  = {w}
 		}
 	}
 } for exactly 3 Prisoner,  exactly 8 World, exactly 4 KnowledgeState
+
+
+/*
+checks that for everyone world not composed of only green eyed people,
+there's a knowledge state where every person is aware of their eye color
+*/
+check everyoneIsAwareAtOnce {
+	all w: World | some ks: KnowledgeState | {
+		someBlueEyes[w] implies {
+			all p: Prisoner | ks.poss[p][w] = {w}
+		}
+	}
+} for exactly 3 Prisoner,  exactly 8 World, exactly 4 KnowledgeState
+
+/*
+Check that if there are n blue eyed people in a given world, then after
+n days each of them will have left
+*/
+check blueEyesLeave {
+	all w: World | all ks: KnowledgeState | {
+		someBlueEyes[w] implies {
+			ks.day = #w.eyes.Blue implies ks.left[w] = w.eyes.Blue
+		}
+	}
+} for exactly 2 Prisoner,  exactly 4 World, exactly 4 KnowledgeState
 
