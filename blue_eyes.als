@@ -10,8 +10,7 @@ sig Prisoner {}
 
 -- The world maps prisoners to eye colors
 sig World {
-	eyes: Prisoner -> one EyeColor,
-	left: set Prisoner
+	eyes: Prisoner -> one EyeColor
 }
 
 -- no two worlds are the same
@@ -66,14 +65,14 @@ pred initialKnowledge[ks: KnowledgeState] {
 
 pred transition[ks, ks': KnowledgeState] {
 	ks'.day = add[ks.day, 1]
+	all w: World {
+		ks'.whoLeft[w][ks.day] = canLeave[ks, w] - canLeave[ks.prev, w]
+	}
 	all p: Prisoner | all w: World { 
 		ks'.poss[p][w] =  {ow: World | 
 			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p'] 
 			and canLeave[ks, ow] = canLeave[ks, w]
 		}
-
-
-		ks'.whoLeft[w][ks'.day] = canLeave[ks', w] - canLeave[ks, w]
 	}
 }
 
@@ -83,23 +82,16 @@ pred consistent[ks: KnowledgeState] {
 	}
 }
 
-pred onIsland[ks: KnowledgeState] {
-	all w: World {
-		w.left = none
-	}
-}
-
 fact initialState {
 	consistent[KS/first]
 	initialKnowledge[KS/first]
-	onIsland[KS/first]
 }
 
 fact traces {
 	all ks: KnowledgeState - KS/last | {
 		transition[ks, ks.next]
+		consistent[ks.next]
 	}
 }
 
-run{} for exactly 2 Prisoner,  exactly 3 World,
-exactly 3 KnowledgeState
+run{} for exactly 5 Prisoner,  exactly 31 World, exactly 7 KnowledgeState
