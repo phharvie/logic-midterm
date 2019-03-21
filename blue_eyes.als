@@ -109,7 +109,6 @@ pred transition[ks, ks': KnowledgeState] {
 	}
 }
 
-<<<<<<< HEAD
 fact initialState {
 	initialKnowledge[KS/first]
 }
@@ -125,6 +124,7 @@ run{} for exactly 1 Prisoner,  exactly 2 World, exactly 7 KnowledgeState
 -- a person with blue eyes exists in that world
 pred someBlueEyes[w: World] {
 	some p: Prisoner | w.eyes[p] = Blue
+}
 
 --------------- sanity checks --------------- 
 
