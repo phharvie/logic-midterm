@@ -59,8 +59,8 @@ pred initialKnowledge[ks: KnowledgeState] {
 		-- the set of possible worlds for p given that it is in w is the set of
 		-- all worlds in which p' eye colors stay the same
 		ks.poss[p][w] =  {ow: World | 
+			some ow.eyes.Blue and
 			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p']
-			and some ow.eyes.Blue
 		}
 		-- the set of people who have left that world then contains
 		-- the prisoners that can leave at that day
@@ -119,7 +119,7 @@ fact traces {
 	}
 }
 
-run{} for exactly 1 Prisoner,  exactly 2 World, exactly 7 KnowledgeState
+run{} for exactly 3 Prisoner,  exactly 8 World, exactly 7 KnowledgeState
 
 -- a person with blue eyes exists in that world
 pred someBlueEyes[w: World] {
@@ -168,13 +168,41 @@ check everyoneIsAwareAtOnce {
 
 /*
 Check that if there are n blue eyed people in a given world, then after
-n days each of them will have left
+n days each of them will have left, and before that no one has left
 */
-check blueEyesLeave {
+check blueEyesLeaveAfterNdays {
 	all w: World | all ks: KnowledgeState | {
 		someBlueEyes[w] implies {
-			ks.day = #w.eyes.Blue implies ks.left[w] = w.eyes.Blue
+			-- if that day is equal to the number of blue eyes in a given world
+			ks.day = #w.eyes.Blue implies {
+				-- left is equal to all the people with blue eyes
+				ks.left[w] = w.eyes.Blue
+				-- and no one has left prior
+				ks.prev.left[w] = none
+			}
 		}
 	}
-} for exactly 2 Prisoner,  exactly 4 World, exactly 4 KnowledgeState
+} for exactly 3 Prisoner,  exactly 8 World, exactly 4 KnowledgeState
 
+/*
+Check that if there are n blue eyed people in a given world, then 
+after n + 1 days, everyone will have left, regardless of eye
+*/
+check everyoneLeavesAfterNplusOneDays {
+	all w: World | all ks: KnowledgeState | {
+		someBlueEyes[w] implies {
+			-- if that day is equal to the number of blue eyes  in a given world plus one
+			ks.day = add[#w.eyes.Blue, 1] implies {
+				-- left is equal to everyone
+				ks.left[w] = w.eyes.EyeColor
+				-- and prior state is equal to blue eyes
+
+			}
+		}
+	}
+} for exactly 1 Prisoner,  exactly 2 World, exactly 4 KnowledgeState
+
+/*
+Checks that the left status remains the same after everyone has left
+*/
+check maintainLeftStatus {}
