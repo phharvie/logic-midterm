@@ -24,8 +24,7 @@ sig KnowledgeState {
 		-- If p is in w1, they believe w2 is possible
 	poss: Prisoner->World->World,
 	day: Int,
-
-	whoLeft: World -> Int -> set Prisoner
+	left: World -> set Prisoner
 } { 
 	this = KS/first implies day = 1
 }
@@ -48,22 +47,26 @@ pred initialKnowledge[ks: KnowledgeState] {
 		-- all possible worlds for the current prisoner will have the 
 		-- other prisoner with the same eyecolor  
 		ks.poss[p][w] =  {ow: World | 
-			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p'] and some ow.eyes.Blue
+			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p']
+			and some ow.eyes.Blue
+		}
+		all w: World {
+			ks.left[w] = canLeave[ks, w]
 		}
 	}
 }
 
 pred transition[ks, ks': KnowledgeState] {
 	ks'.day = add[ks.day, 1]
-	all w: World {
-		ks'.whoLeft[w][ks.day] = canLeave[ks, w] - canLeave[ks.prev, w]
-	}
 	all p: Prisoner | all w: World { 
 		ks'.poss[p][w] =  {ow: World | 
 			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p'] 
 			and canLeave[ks, ow] = canLeave[ks, w]
-			and some ow.eyes.Blue
+			and ow in ks.poss[p][w]
 		}
+	}
+	all w: World {
+		ks'.left[w] = canLeave[ks', w]
 	}
 }
 
@@ -77,7 +80,7 @@ fact traces {
 	}
 }
 
-run{} for exactly 2 Prisoner,  exactly 4 World, exactly 7 KnowledgeState
+run{} for exactly 3 Prisoner,  exactly 8 World, exactly 7 KnowledgeState
 
 pred consistent[ks: KnowledgeState] {
 	all p: Prisoner, w: World | {
