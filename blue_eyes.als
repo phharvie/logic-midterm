@@ -11,6 +11,7 @@ sig Prisoner {}
 -- The world maps prisoners to eye colors
 sig World {
 	eyes: Prisoner -> one EyeColor
+	gnomesLeft: set Prisoner
 }
 
 -- no two worlds are the same
@@ -27,6 +28,7 @@ sig KnowledgeState {
 } { 
 	this = KS/first implies night = 0
 	this != KS/first implies night > 0
+	-- this = KS/first implies knows = 0
 }
 
 -- can see all other prisoners other than themselves
@@ -51,4 +53,34 @@ fact {
 	initialKnowledge[KS/first]
 }
 
-run {} for exactly 4 Prisoner,  exactly 16 World, exactly 4 KnowledgeState, 5 int
+pred knows[ks: KnowledgeState, p: Prisoner, w: World] {
+  one ks.poss[p][w] -- only self-loop left
+}
+
+pred learn[old, new: KnowledgeState] {
+
+  all p: Prisoner, w: World |
+	-- if a blue-eyed gnome from the last ks is still visible in the current ks
+	all op: w.gnomesLeft - p| {
+	-- then, this gnome's poss relation in new should delete an edge to worlds in which ...
+  }
+}
+
+pred traces {
+	all ks: KnowledgeState - KS/last | {
+    	learn[ks, ks.next]
+ 	}
+ // all curState: KnowledgeState - last | let nextState = curState.next |
+//		all p: Prisoner | {
+//    		nextState.night = curState.night.plus[1]
+//    		p.knows = 1 implies {
+//      		-- agent already guessed their own eye color
+//      		
+//    		} else {
+//      		-- agent hasn't guessed their own eye color
+//       		
+//			}
+//  		}
+}
+
+run {} for exactly 2 Prisoner,  exactly 4 World, exactly 4 KnowledgeState, 5 int
