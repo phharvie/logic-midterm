@@ -30,7 +30,9 @@ sig KnowledgeState {
 	-- poss[p][w1][w2] read as: 
 		-- If p is in w1, they believe w2 is possible
 	poss: Prisoner->World->World,
-	day: Int
+	day: Int,
+
+	whoLeft: World -> Int -> set Prisoner
 } { 
 	this = KS/first implies day = 1
 }
@@ -63,13 +65,16 @@ pred initialKnowledge[ks: KnowledgeState] {
 }
 
 pred transition[ks, ks': KnowledgeState] {
+	ks'.day = add[ks.day, 1]
 	all p: Prisoner | all w: World { 
 		ks'.poss[p][w] =  {ow: World | 
 			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p'] 
 			and canLeave[ks, ow] = canLeave[ks, w]
 		}
+
+
+		ks'.whoLeft[w][ks'.day] = canLeave[ks', w] - canLeave[ks, w]
 	}
-	ks'.day = add[ks.day, 1]
 }
 
 pred consistent[ks: KnowledgeState] {
