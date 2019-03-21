@@ -26,7 +26,6 @@ fact someBlueEyes {
 	}
 }
 
-
 sig KnowledgeState {
 	-- poss[p][w1][w2] read as: 
 		-- If p is in w1, they believe w2 is possible
@@ -46,15 +45,14 @@ fun visibleBlueEyes[w: World, p: Prisoner] : set Prisoner {
 	w.eyes.Blue - p
 }
 
-
-pred canLeave[ks: KnowledgeState] {
-
-}	
+pred canLeave[ks: KnowledgeState, p: Prisoner, w: World] {
+	one ks.poss[p][w] and w.eyes[p] = Blue
+}
 
 pred initialKnowledge[ks: KnowledgeState] {
 	-- each prisoner can see all the other prisoners
 	-- and they are unable to see themselves
-
+	
 	all p: Prisoner | all w: World {
 		-- reads as, for each prisoner visible to the current prisoner,
 		-- all possible worlds for the current prisoner will have the 
@@ -65,6 +63,11 @@ pred initialKnowledge[ks: KnowledgeState] {
 	}
 }
 
+fun changeWorld[ks: KnowledgeState, p: Prisoner, w: World] : set Prisoner {
+	canLeave[ks, p, w] implies w.left + p else w.left
+}
+	
+
 pred transition[ks: KnowledgeState, ks': KnowledgeState] {
 	all p: Prisoner | all w: World { 
 		ks'.poss[p][w] =  {ow: World | 
@@ -72,7 +75,6 @@ pred transition[ks: KnowledgeState, ks': KnowledgeState] {
 			(ow = w or #ks.poss[p'][ow] > 1)
 		}
 	}
-	ks'.night = 3
 }
 
 pred consistent[ks: KnowledgeState] {
@@ -97,5 +99,6 @@ fact nextState {
 	consistent[KS/first.next]
 	transition[KS/first, KS/first.next]
 }
+
 run{} for exactly 2 Prisoner,  exactly 3 World,
-exactly 4 KnowledgeState
+exactly 3 KnowledgeState
