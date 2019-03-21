@@ -19,12 +19,6 @@ fact distWorlds {
 		some p: Prisoner | w1.eyes[p] != w2.eyes[p]
 }
 
-fact someBlueEyes {
-	all w: World | {
-		some p: Prisoner | w.eyes[p] = Blue
-	}
-}
-
 sig KnowledgeState {
 	-- poss[p][w1][w2] read as: 
 		-- If p is in w1, they believe w2 is possible
@@ -41,12 +35,8 @@ fun visibleTo[p: Prisoner] : set Prisoner {
 	Prisoner - p
 }
 
-fun visibleBlueEyes[w: World, p: Prisoner] : set Prisoner {
-	w.eyes.Blue - p
-}
-
 fun canLeave[ks: KnowledgeState, w: World] : set Prisoner {
-	{p: Prisoner | one ks.poss[p][w]  and w.eyes[p] = Blue}
+	{p: Prisoner | ks.poss[p][w] = {w}}
 }
 
 pred initialKnowledge[ks: KnowledgeState] {
@@ -58,7 +48,7 @@ pred initialKnowledge[ks: KnowledgeState] {
 		-- all possible worlds for the current prisoner will have the 
 		-- other prisoner with the same eyecolor  
 		ks.poss[p][w] =  {ow: World | 
-			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p']
+			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p'] and some ow.eyes.Blue
 		}
 	}
 }
@@ -72,26 +62,41 @@ pred transition[ks, ks': KnowledgeState] {
 		ks'.poss[p][w] =  {ow: World | 
 			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p'] 
 			and canLeave[ks, ow] = canLeave[ks, w]
+			and some ow.eyes.Blue
 		}
 	}
 }
 
-pred consistent[ks: KnowledgeState] {
-	all p: Prisoner | all w: World {
-		w in ks.poss[p][w]
-	}
-}
-
 fact initialState {
-	consistent[KS/first]
 	initialKnowledge[KS/first]
 }
 
 fact traces {
 	all ks: KnowledgeState - KS/last | {
 		transition[ks, ks.next]
-		consistent[ks.next]
 	}
 }
 
-run{} for exactly 5 Prisoner,  exactly 31 World, exactly 7 KnowledgeState
+run{} for exactly 2 Prisoner,  exactly 4 World, exactly 7 KnowledgeState
+
+pred consistent[ks: KnowledgeState] {
+	all p: Prisoner, w: World | {
+			w in ks.poss[p][w]
+		}
+}
+--------------- sanity checks --------------- 
+
+check allConsistent {
+	all ks: KnowledgeState, p: Prisoner, w: World | {
+		w in ks.poss[p][w]
+	}
+}
+
+check everyoneIsAwareEventually {
+	all w: World, p: Prisoner | {
+		some ks: KnowledgeState | {
+			w in ks.poss[p][w]
+		}
+	}
+} for exactly 3 Prisoner,  exactly 8 World, exactly 4 KnowledgeState
+
