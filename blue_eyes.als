@@ -1,4 +1,5 @@
 open util/ordering[KnowledgeState] as KS
+open util/boolean
 
 abstract sig EyeColor {}
 
@@ -16,16 +17,22 @@ sig World {
 
 -- no two worlds are the same
 fact distWorlds {
-	all disj w1, w2: World | 
+	all disj w1, w2: World |
 		some p: Prisoner | w1.eyes[p] != w2.eyes[p]
 }
 
+fact someBlueEyes {
+	all w: World | {
+		some p: Prisoner | w.eyes[p] = Blue
+	}
+}
+
 sig KnowledgeState {
-	-- poss[p][w1][w2] read as: 
+	-- poss[p][w1][w2] read as:
 		-- If p is in w1, they believe w2 is possible
 	poss: Prisoner->World->World,
 	night: Int
-} { 
+} {
 	this = KS/first implies night = 0
 	this != KS/first implies night > 0
 	-- this = KS/first implies knows = 0
@@ -36,20 +43,32 @@ fun visibleTo[p: Prisoner] : set Prisoner {
 	Prisoner - p
 }
 
-pred initialKnowledge[s : KnowledgeState] {
+pred initialKnowledge[ks : KnowledgeState] {
 	-- each prisoner can see all the other prisoners
 	-- and they are unable to see themselves
 
 	all p: Prisoner | all w: World {
 		-- reads as, for each prisoner visible to the current prisoner,
-		-- all possible worlds for the current prisoner will have the 
-		-- other prisoner with the same eyecolor  
-		s.poss[p][w] =  {ow: World | 
+		-- all possible worlds for the current prisoner will have the
+		-- other prisoner with the same eyecolor
+		ks.poss[p][w] =  {ow: World |
 			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p']}
+		w.left[p] = False
 	}
 }
 
-fact {
+pred consistent[ks: KnowledgeState] {
+	all p: Prisoner | all w: World {
+		w in ks.poss[p][w]
+	}
+}
+
+pred transition[ks, ks': KnowledgeState] {
+	ks'.night = add[ks.night, 1]
+}
+
+fact initialState {
+	consistent[KS/first]
 	initialKnowledge[KS/first]
 }
 
@@ -75,10 +94,10 @@ pred traces {
 //    		nextState.night = curState.night.plus[1]
 //    		p.knows = 1 implies {
 //      		-- agent already guessed their own eye color
-//      		
+//
 //    		} else {
 //      		-- agent hasn't guessed their own eye color
-//       		
+//
 //			}
 //  		}
 }
