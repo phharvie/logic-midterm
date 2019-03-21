@@ -1,6 +1,5 @@
 open util/ordering[KnowledgeState] as KS
 
-
 abstract sig EyeColor {}
 
 -- Eyes are either blue or green
