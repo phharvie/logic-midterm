@@ -29,8 +29,6 @@ Design Choices:
     used to show the set of prisoners who have left each world by every
     knowledge state (at every day).
 
-(d) ... (Add sanity checking related design choices)
-
 
 
 Model Structure:
