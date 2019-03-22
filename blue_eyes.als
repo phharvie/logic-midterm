@@ -97,14 +97,13 @@ pred transition[ks, ks': KnowledgeState] {
 		--   (3) these worlds must be in the set of worlds that p thinks
 		--       are possible given the previous knowledge state
 		ks'.poss[p][w] =  {ow: World | 
-			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p'] 
-			and canLeave[ks, ow] = canLeave[ks, w]
-			and ow in ks.poss[p][w]
+			some ow.eyes.Blue and
+			all p': visibleTo[p] | ow.eyes[p'] = w.eyes[p'] and
+			canLeave[ks, ow] = canLeave[ks, w] and
+			ow in ks.poss[p][w]
 		}
-	}
-	-- the set of people who have left that world in the next knowledge
-	-- state then contains the prisoners that can leave at that day
-	all w: World {
+		-- the set of people who have left that world in the next knowledge
+		-- state then contains the prisoners that can leave at that day
 		ks'.left[w] = canLeave[ks', w]
 	}
 }
@@ -119,7 +118,7 @@ fact traces {
 	}
 }
 
-run{} for exactly 3 Prisoner,  exactly 8 World, exactly 7 KnowledgeState
+run{} for exactly 4 Prisoner,  exactly 16 World, exactly 6 KnowledgeState
 
 -- a person with blue eyes exists in that world
 pred someBlueEyes[w: World] {
@@ -139,7 +138,7 @@ check allConsistent {
 		-- believes that world is possible
 		someBlueEyes[w] implies w in ks.poss[p][w]
 	}
-} for exactly 3 Prisoner, exactly 8 World, exactly 7 KnowledgeState
+} for exactly 3 Prisoner,  exactly 8 World, exactly 9 KnowledgeState
 
 /*
 checks that for everyone world not composed of only green eyed people,
@@ -151,7 +150,7 @@ check everyoneIsAwareEventually {
 			ks.poss[p][w]  = {w}
 		}
 	}
-} for exactly 3 Prisoner,  exactly 8 World, exactly 4 KnowledgeState
+} for exactly 3 Prisoner,  exactly 8 World, exactly 9 KnowledgeState
 
 
 /*
@@ -164,7 +163,7 @@ check everyoneIsAwareAtOnce {
 			all p: Prisoner | ks.poss[p][w] = {w}
 		}
 	}
-} for exactly 3 Prisoner,  exactly 8 World, exactly 4 KnowledgeState
+} for exactly 3 Prisoner,  exactly 8 World, exactly 9 KnowledgeState
 
 /*
 Check that if there are n blue eyed people in a given world, then after
@@ -182,7 +181,7 @@ check blueEyesLeaveAfterNdays {
 			}
 		}
 	}
-} for exactly 3 Prisoner,  exactly 8 World, exactly 4 KnowledgeState
+} for exactly 3 Prisoner,  exactly 8 World, exactly 9 KnowledgeState
 
 /*
 Check that if there are n blue eyed people in a given world, then 
@@ -196,13 +195,24 @@ check everyoneLeavesAfterNplusOneDays {
 				-- left is equal to everyone
 				ks.left[w] = w.eyes.EyeColor
 				-- and prior state is equal to blue eyes
-
+				ks.prev.left[w] = w.eyes.Blue
 			}
 		}
 	}
-} for exactly 1 Prisoner,  exactly 2 World, exactly 4 KnowledgeState
+} for exactly 3 Prisoner,  exactly 8 World, exactly 9 KnowledgeState
 
 /*
 Checks that the left status remains the same after everyone has left
 */
-check maintainLeftStatus {}
+check leftStatusMaintaied {
+	all w: World | all ks: KnowledgeState | {
+		someBlueEyes[w] implies {
+			-- if that day is greater than the number of blue eyes in the world
+			ks.day < #w.eyes.Blue implies {
+				-- left is equal to everyone
+				ks.left[w] = w.eyes.EyeColor
+				ks.prev.left[w] = w.eyes.Blue or ks.prev.left[w] = w.eyes.EyeColor
+			}
+		}
+	}
+} for exactly 3 Prisoner,  exactly 8 World, exactly 9 KnowledgeState

@@ -79,8 +79,8 @@ comments we have provided within our code.
 What the model proves:
 ======================
 
-(a) ...
+(a) If there are n prisoners with blue eyes, each blue-eyed prisoner will leave on the nth day
 
-(b) ...
+(b) If there are n prisoners with blue eyes, each prisoner without blue eyes will leave on the nth + 1 day
 
-(c) ...
+(c) If all prisoners do not have blue eyes, then no prisoners will ever leave the island
