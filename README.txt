@@ -84,3 +84,8 @@ What the model proves:
 (b) If there are n prisoners with blue eyes, each prisoner without blue eyes will leave on the nth + 1 day
 
 (c) If all prisoners do not have blue eyes, then no prisoners will ever leave the island
+
+
+BUGS:
+======================
+It takes a while to run the program on 4 prisoners, 16 worlds, possibly due to the left relation on knowledge states. A better design would have been to have worlds contain the set of prisoners that have left them, however, we could not figure out how to get this to work with alloy (cause its a really confusing language)
