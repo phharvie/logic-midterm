@@ -29,6 +29,15 @@ Design Choices:
     used to show the set of prisoners who have left each world by every
     knowledge state (at every day).
 
+(d) We added a few sanity checks/tests to check the functionality of our
+    model. These included a test to check that all worlds in all knowledge
+    states are consistent, a test to check that everyone is aware of their
+    eye color eventually, a test to check that in a world that is not entirely
+    composed of green-eyed prisoners all prisoners become aware of their eye color
+    at once, a test to check that n blue-eyed prisoners in a given world all leave
+    after n + 1 days, and finally, a test to check that the 'left' set is maintained
+    after everyone has left.
+
 
 
 Model Structure:
@@ -77,13 +86,20 @@ comments we have provided within our code.
 What the model proves:
 ======================
 
-(a) If there are n prisoners with blue eyes, each blue-eyed prisoner will leave on the nth day
+(a) If there are n prisoners with blue eyes, each blue-eyed prisoner will leave on the nth 
+    day.
 
-(b) If there are n prisoners with blue eyes, each prisoner without blue eyes will leave on the nth + 1 day
+(b) If there are n prisoners with blue eyes, each prisoner without blue eyes will leave on 
+    the nth + 1 day.
 
 (c) If all prisoners do not have blue eyes, then no prisoners will ever leave the island
 
+(d) In a world that is not entirely composed of green-eyed prisoners, all prisoners become  
+    aware of their eye color at once.
 
 BUGS:
-======================
-It takes a while to run the program on 4 prisoners, 16 worlds, possibly due to the left relation on knowledge states. A better design would have been to have worlds contain the set of prisoners that have left them, however, we could not figure out how to get this to work with alloy (cause its a really confusing language)
+=====
+It takes a while to run the program on 4 prisoners, 16 worlds, possibly due to the left 
+relation on knowledge states. A better design would have been to have worlds contain the
+set of prisoners that have left them, however, we could not figure out how to get this to
+work with alloy (cause its a really confusing language)
